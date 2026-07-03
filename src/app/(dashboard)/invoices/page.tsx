@@ -14,6 +14,14 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -52,6 +60,8 @@ export default function InvoicesPage() {
   const router = useRouter();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   useEffect(() => {
     async function fetchInvoices() {
@@ -149,6 +159,15 @@ export default function InvoicesPage() {
     toast.success("CSV exported successfully");
   };
 
+  const filteredInvoices = invoices.filter((inv) => {
+    const matchesSearch =
+      inv.customer.name.toLowerCase().includes(search.toLowerCase()) ||
+      inv.invoiceNumber.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus =
+      statusFilter === "ALL" || inv.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -206,6 +225,27 @@ export default function InvoicesPage() {
 
       <Separator />
 
+      {/* Search and Filter */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Input
+          placeholder="Search by customer or invoice number..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="sm:max-w-xs"
+        />
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Status</SelectItem>
+            <SelectItem value="PAID">Paid</SelectItem>
+            <SelectItem value="UNPAID">Unpaid</SelectItem>
+            <SelectItem value="OVERDUE">Overdue</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <Card>
         <CardContent className="pt-6">
           {invoices.length === 0 ? (
@@ -237,7 +277,7 @@ export default function InvoicesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {invoices.map((invoice) => (
+                {filteredInvoices.map((invoice) => (
                   <TableRow key={invoice.id} className="group">
                     <TableCell className="font-mono text-xs font-medium">
                       {invoice.invoiceNumber}
