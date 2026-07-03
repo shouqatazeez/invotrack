@@ -9,6 +9,7 @@ import {
   Download,
   Eye,
   Trash2,
+  FileDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -118,6 +119,36 @@ export default function InvoicesPage() {
     }
   };
 
+  const handleExportCsv = () => {
+    if (invoices.length === 0) {
+      toast.error("No invoices to export");
+      return;
+    }
+
+    const headers = ["Invoice #", "Customer", "Amount", "Date", "Status"];
+    const rows = invoices.map((inv) => [
+      inv.invoiceNumber,
+      inv.customer.name,
+      inv.total.toString(),
+      new Date(inv.createdAt).toLocaleDateString(),
+      inv.status,
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n");
+
+    const bom = "\uFEFF";
+    const blob = new Blob([bom + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `invoices-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success("CSV exported successfully");
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -159,12 +190,18 @@ export default function InvoicesPage() {
             {invoices.length}
           </Badge>
         </div>
-        <Button asChild>
-          <Link href="/invoices/new">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Invoice
-          </Link>
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={handleExportCsv}>
+            <FileDown className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button asChild>
+            <Link href="/invoices/new">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Invoice
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Separator />
