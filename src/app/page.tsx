@@ -10,6 +10,8 @@ import {
   Send,
   BarChart3,
   CheckCircle2,
+  MessageSquare,
+  FileDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -78,7 +80,7 @@ export default function LandingPage() {
             who want to stop tracking payments in WhatsApp and Excel.
           </p>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card className="group hover:border-primary/50 transition-colors">
             <CardContent className="pt-6">
               <div className="h-11 w-11 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition-colors">
@@ -120,6 +122,28 @@ export default function LandingPage() {
               <h3 className="font-semibold mb-1.5">PDF Export</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Download branded PDF invoices to share with customers via email or WhatsApp.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="group hover:border-primary/50 transition-colors">
+            <CardContent className="pt-6">
+              <div className="h-11 w-11 rounded-lg bg-pink-500/10 flex items-center justify-center mb-4 group-hover:bg-pink-500/20 transition-colors">
+                <MessageSquare className="h-5 w-5 text-pink-500" />
+              </div>
+              <h3 className="font-semibold mb-1.5">AI Payment Reminders</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Generate AI-powered reminder messages and send them via WhatsApp or email with invoice attached.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="group hover:border-primary/50 transition-colors">
+            <CardContent className="pt-6">
+              <div className="h-11 w-11 rounded-lg bg-cyan-500/10 flex items-center justify-center mb-4 group-hover:bg-cyan-500/20 transition-colors">
+                <FileDown className="h-5 w-5 text-cyan-500" />
+              </div>
+              <h3 className="font-semibold mb-1.5">CSV Export & Search</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Export invoices as CSV for accounting. Search and filter by customer or status instantly.
               </p>
             </CardContent>
           </Card>
