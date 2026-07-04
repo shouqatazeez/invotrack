@@ -316,19 +316,6 @@ Database hosted on Neon (free tier, serverless PostgreSQL).
 
 ---
 
-## What's Next
-
-Optional features planned for future iterations:
-
-- Search and filter on invoice/customer lists
-- Date range filter for revenue analytics
-- CSV export of all invoices
-- Email invoice directly to customer
-- Recurring invoices (monthly auto-generation)
-- Payment history and partial payments
-
----
-
 ## Contact
 
 [![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:mdshouqatazeez@gmail.com)
