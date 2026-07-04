@@ -95,6 +95,22 @@ Mark invoices as Paid, Unpaid, or Overdue. Download a branded PDF invoice to sha
 - Toast notifications for all operations
 - Alert dialog confirmation before deleting
 
+### AI Payment Reminders
+- Generate AI-powered payment reminder messages using Google Gemini
+- Two versions: WhatsApp (short) and Email (professional)
+- One-click send via WhatsApp (opens WhatsApp Web with pre-filled message)
+- One-click send via Email (Resend) with invoice PDF attached
+- Only appears on unpaid/overdue invoices
+
+<p align="center">
+  <img src="screenshots/ai-reminder.png" alt="AI Payment Reminder" width="100%" />
+</p>
+
+### CSV Export & Search
+- Export all invoices as CSV file for accounting/tax purposes
+- Search invoices by customer name or invoice number
+- Filter by status (All, Paid, Unpaid, Overdue)
+
 ### Authentication & Security
 - User registration and login with email/password
 - JWT-based sessions (30-day expiry)
@@ -136,7 +152,9 @@ Walk-in customer needs a repair. Owner creates a quick invoice: "Screen Replacem
 | Auth | NextAuth 4 (JWT) | Session management, credential provider |
 | UI | shadcn/ui + Radix UI | Accessible, customizable component library |
 | Styling | Tailwind CSS 4 | Utility-first, fast iteration |
-| PDF | jsPDF | Client-side PDF generation |
+| PDF | jsPDF | Server-side PDF generation |
+| AI | Google Gemini API | AI-powered reminder message generation |
+| Email | Resend | Transactional email delivery with attachments |
 | Icons | Lucide React | Consistent, lightweight icon set |
 | Deployment | Vercel | Zero-config Next.js deployment |
 
@@ -197,6 +215,7 @@ All endpoints require authentication (JWT via middleware).
 | DELETE | `/api/v1/invoices/:id` | Delete |
 | PUT | `/api/v1/invoices/:id/status` | Update payment status |
 | GET | `/api/v1/invoices/:id/pdf` | Download PDF |
+| POST | `/api/v1/invoices/:id/reminder` | AI reminder + send email |
 
 ### Dashboard
 | Method | Endpoint | Description |
@@ -266,6 +285,8 @@ Create `.env`:
 DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
 NEXTAUTH_SECRET="your-random-secret-key"
 NEXTAUTH_URL="http://localhost:3000"
+GEMINI_API_KEY="your-gemini-api-key"
+RESEND_API_KEY="your-resend-api-key"
 ```
 
 Run database migrations:
