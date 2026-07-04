@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Download, FileText, User, Calendar } from "lucide-react";
+import { ArrowLeft, Download, FileText, User, Calendar, MessageSquare, Copy, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -67,6 +74,10 @@ export default function InvoiceDetailPage() {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusLoading, setStatusLoading] = useState(false);
+  const [reminderOpen, setReminderOpen] = useState(false);
+  const [reminderLoading, setReminderLoading] = useState(false);
+  const [reminderMessages, setReminderMessages] = useState<{ whatsapp: string; email: string } | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
     async function fetchInvoice() {
@@ -144,6 +155,69 @@ export default function InvoiceDetailPage() {
       default:
         return "secondary";
     }
+  };
+
+  const handleGenerateReminder = async () => {
+    setReminderLoading(true);
+    setReminderMessages(null);
+    setReminderOpen(true);
+
+    try {
+      const res = await fetch(`/api/v1/invoices/${id}/reminder`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "generate" }),
+      });
+
+      if (!res.ok) {
+        toast.error("Failed to generate reminder");
+        setReminderOpen(false);
+        return;
+      }
+
+      const data = await res.json();
+      setReminderMessages(data.messages);
+    } catch (err) {
+      toast.error("Something went wrong");
+      setReminderOpen(false);
+    } finally {
+      setReminderLoading(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    setSendingEmail(true);
+
+    try {
+      const res = await fetch(`/api/v1/invoices/${id}/reminder`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "send" }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Failed to send email");
+        return;
+      }
+
+      const data = await res.json();
+      if (data.emailSent) {
+        toast.success(`Reminder sent to ${data.sentTo}`);
+        setReminderOpen(false);
+      } else {
+        toast.error("Customer email not available");
+      }
+    } catch (err) {
+      toast.error("Failed to send email");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard");
   };
 
   if (loading) {
@@ -229,6 +303,12 @@ export default function InvoiceDetailPage() {
                 <Download className="h-4 w-4 mr-2" />
                 PDF
               </Button>
+              {invoice.status !== "PAID" && (
+                <Button variant="outline" size="sm" onClick={handleGenerateReminder}>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Send Reminder
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -343,6 +423,102 @@ export default function InvoiceDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* AI Reminder Dialog */}
+      <Dialog open={reminderOpen} onOpenChange={setReminderOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Payment Reminder</DialogTitle>
+            <DialogDescription>
+              AI-generated reminder for {invoice.customer.name}
+            </DialogDescription>
+          </DialogHeader>
+
+          {reminderLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <span className="ml-2 text-sm text-muted-foreground">Generating reminder...</span>
+            </div>
+          ) : reminderMessages ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">WhatsApp Message</p>
+                  <div className="flex gap-1">
+                    {invoice.customer.phone && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const phone = invoice.customer.phone!.replace(/[^0-9]/g, "");
+                          const url = `https://wa.me/${phone}?text=${encodeURIComponent(reminderMessages.whatsapp)}`;
+                          window.open(url, "_blank");
+                        }}
+                      >
+                        <Send className="h-3.5 w-3.5 mr-1" />
+                        Send
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCopy(reminderMessages.whatsapp)}
+                    >
+                      <Copy className="h-3.5 w-3.5 mr-1" />
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+                <div className="rounded-md bg-muted p-3 text-sm">
+                  {reminderMessages.whatsapp}
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">Email Message</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCopy(reminderMessages.email)}
+                  >
+                    <Copy className="h-3.5 w-3.5 mr-1" />
+                    Copy
+                  </Button>
+                </div>
+                <div className="rounded-md bg-muted p-3 text-sm">
+                  {reminderMessages.email}
+                </div>
+              </div>
+
+              {invoice.customer.email && (
+                <>
+                  <Separator />
+                  <Button
+                    className="w-full"
+                    onClick={handleSendEmail}
+                    disabled={sendingEmail}
+                  >
+                    {sendingEmail ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Send Email to {invoice.customer.email}
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
