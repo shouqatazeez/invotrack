@@ -12,43 +12,39 @@ export async function GET() {
     const [
       totalCustomers,
       totalProducts,
-      paidInvoices,
-      unpaidInvoices,
-      overdueInvoices,
+      paidStats,
+      unpaidStats,
+      overdueStats,
     ] = await Promise.all([
       prisma.customer.count({ where: { userId } }),
       prisma.product.count({ where: { userId } }),
-      prisma.invoice.findMany({ where: { userId, status: "PAID" } }),
-      prisma.invoice.findMany({ where: { userId, status: "UNPAID" } }),
-      prisma.invoice.findMany({ where: { userId, status: "OVERDUE" } }),
+      prisma.invoice.aggregate({
+        where: { userId, status: "PAID" },
+        _sum: { total: true },
+        _count: true,
+      }),
+      prisma.invoice.aggregate({
+        where: { userId, status: "UNPAID" },
+        _sum: { total: true },
+        _count: true,
+      }),
+      prisma.invoice.aggregate({
+        where: { userId, status: "OVERDUE" },
+        _sum: { total: true },
+        _count: true,
+      }),
     ]);
-
-    const totalRevenue = paidInvoices.reduce(
-      (sum: number, inv: { total: number }) => sum + inv.total,
-      0
-    );
-
-    const totalUnpaid = unpaidInvoices.reduce(
-      (sum: number, inv: { total: number }) => sum + inv.total,
-      0
-    );
-
-    const totalOverdue = overdueInvoices.reduce(
-      (sum: number, inv: { total: number }) => sum + inv.total,
-      0
-    );
 
     return NextResponse.json({
       totalCustomers,
       totalProducts,
-      totalRevenue,
-      totalUnpaid,
-      totalOverdue,
-      paidCount: paidInvoices.length,
-      unpaidCount: unpaidInvoices.length,
-      overdueCount: overdueInvoices.length,
-      totalInvoices:
-        paidInvoices.length + unpaidInvoices.length + overdueInvoices.length,
+      totalRevenue: paidStats._sum.total || 0,
+      totalUnpaid: unpaidStats._sum.total || 0,
+      totalOverdue: overdueStats._sum.total || 0,
+      paidCount: paidStats._count,
+      unpaidCount: unpaidStats._count,
+      overdueCount: overdueStats._count,
+      totalInvoices: paidStats._count + unpaidStats._count + overdueStats._count,
     });
   } catch (error) {
     return NextResponse.json(
