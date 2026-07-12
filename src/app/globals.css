@@ -137,3 +137,11 @@
     transform: translateX(100%);
   }
 }
+
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+input::-webkit-credentials-auto-fill-button {
+  display: none;
+}
