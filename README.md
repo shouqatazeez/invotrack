@@ -147,7 +147,7 @@ Walk-in customer needs a repair. Owner creates a quick invoice: "Screen Replacem
 |-------|-----------|-----|
 | Framework | Next.js 16 (App Router) | Full-stack React with API routes, server components |
 | Language | TypeScript 5 | Type safety, catches bugs at compile time |
-| Database | PostgreSQL (Neon) | Cloud-native, serverless-compatible |
+| Database | PostgreSQL (NeonDB) | Cloud-native, serverless-compatible |
 | ORM | Prisma 7 | Type-safe database queries, easy migrations |
 | Auth | NextAuth 4 (JWT) | Session management, credential provider |
 | UI | shadcn/ui + Radix UI | Accessible, customizable component library |
